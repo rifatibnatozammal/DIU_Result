@@ -131,7 +131,7 @@ if student_id:
                 semester_results[semester_name] = results
                 with st.expander(f"{semester_name} (Click to Expand)"):
                     for result in results:
-                        st.write(f"- **{result['courseTitle']} ({result['customCourseId']}):** Grade: {result['gradeLetter']}, CGPA: {result['pointEquivalent']}")
+                        st.write(f"- **{result['courseTitle']} ({result['customCourseId']}):** Grade: {result['gradeLetter']}, **CGPA: {result['pointEquivalent']}")
                         weighted_cgpa_sum += float(result['pointEquivalent']) * float(result['totalCredit'])
                         total_credits += float(result['totalCredit'])
 
