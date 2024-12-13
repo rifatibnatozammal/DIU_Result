@@ -3,6 +3,7 @@ import requests
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+import pandas as pd
 
 # Base URL for API
 BASE_URL = 'http://software.diu.edu.bd:8006'
@@ -129,18 +130,36 @@ if student_id:
 
             if results:
                 semester_results[semester_name] = results
+
+                # Prepare table data
+                table_data = []
+                for result in results:
+                    table_data.append({
+                        "Course Title": result['courseTitle'],
+                        "Course Code": result['customCourseId'],
+                        "Grade": result['gradeLetter'],
+                        "Credits": float(result['totalCredit']),
+                        "CGPA": float(result['pointEquivalent'])
+                    })
+
+                df = pd.DataFrame(table_data)
+
+                # Display in expander as a table
                 with st.expander(f"{semester_name} (Click to Expand)"):
+                    st.dataframe(df)
+
+                    # Calculate CGPA and Credits
                     for result in results:
-                        st.write(f"- **{result['courseTitle']} ({result['customCourseId']}):** Grade: {result['gradeLetter']}, **CGPA: {result['pointEquivalent']}")
                         weighted_cgpa_sum += float(result['pointEquivalent']) * float(result['totalCredit'])
                         total_credits += float(result['totalCredit'])
 
-        # Calculate total CGPA including defense
+        # Add defense CGPA
         if defense_cgpa:
             defense_credits = 6.0
             weighted_cgpa_sum += defense_cgpa * defense_credits
             total_credits += defense_credits
 
+        # Calculate and display total CGPA
         if total_credits > 0:
             total_cgpa = weighted_cgpa_sum / total_credits
             st.success(f"🎉 **Total CGPA Across All Semesters:** {total_cgpa:.2f}")
@@ -158,8 +177,6 @@ if student_id:
             file_name=f"student_{student_id}_results.pdf",
             mime="application/pdf",
         )
-
-
 
 # Footer
 st.markdown("<hr>", unsafe_allow_html=True)
