@@ -35,11 +35,11 @@ def get_result_for_semester(student_id, semester_id):
         return None
 
 # App layout
-st.set_page_config(page_title="Student Result Viewer", layout="centered", page_icon="📘")
+st.set_page_config(page_title="DIU Student Result Viewer", layout="centered", page_icon="📘")
 
 # Header
 st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Student Result Viewer</h1>", unsafe_allow_html=True)
-st.markdown("<h4 style='text-align: center;'>Optimized for Mobile and Web</h4>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center;'>Easily View Student Information and Academic Results</h4>", unsafe_allow_html=True)
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # Input Section
