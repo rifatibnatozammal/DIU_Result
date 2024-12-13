@@ -41,16 +41,20 @@ st.set_page_config(page_title="Student Result Viewer", layout="wide", page_icon=
 st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Student Result Viewer</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center;'>Easily View Student Information and Academic Results</h3>", unsafe_allow_html=True)
 
-# Sidebar
-with st.sidebar:
-    st.header("Input Details")
-    student_id = st.text_input("Enter Student ID", help="Provide a valid student ID to fetch results.")
-    add_defense = st.checkbox("Add Defense CGPA")
-    defense_cgpa = None
-    if add_defense:
-        defense_cgpa = st.number_input("Enter Defense CGPA", min_value=0.0, max_value=4.0, step=0.01, help="Optional CGPA for defense course.")
+# Input Section
+st.markdown("### Input Student Information")
+student_id = st.text_input("Enter Student ID:", help="Provide a valid Student ID to fetch results.")
 
-# Main content
+add_defense = st.checkbox("Add Defense CGPA?")
+defense_cgpa = None
+if add_defense:
+    defense_cgpa = st.number_input(
+        "Enter Defense CGPA (Optional):",
+        min_value=0.0, max_value=4.0, step=0.01,
+        help="Optional CGPA for defense course."
+    )
+
+# Display Results if Student ID is provided
 if student_id:
     st.info(f"Fetching data for Student ID: **{student_id}**")
 
@@ -111,7 +115,8 @@ if student_id:
             st.warning("No credits earned, CGPA cannot be calculated.")
 
 else:
-    st.warning("Please enter a Student ID in the sidebar.")
+    st.warning("Please enter a Student ID to begin.")
+
 
 # Footer
 st.markdown("<hr>", unsafe_allow_html=True)
