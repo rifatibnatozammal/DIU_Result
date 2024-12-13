@@ -35,29 +35,34 @@ def get_result_for_semester(student_id, semester_id):
         return None
 
 # App layout
-st.set_page_config(page_title="Student Result Viewer", layout="wide", page_icon="📘")
+st.set_page_config(page_title="DIU Student Result Viewer", layout="centered", page_icon="📘")
 
 # Header
 st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Student Result Viewer</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align: center;'>Easily View Student Information and Academic Results</h3>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center;'>Easily View Student Information and Academic Results</h4>", unsafe_allow_html=True)
+st.markdown("<hr>", unsafe_allow_html=True)
 
-# Sidebar
-with st.sidebar:
-    st.header("Input Details")
-    student_id = st.text_input("Enter Student ID", help="Provide a valid student ID to fetch results.")
-    add_defense = st.checkbox("Add Defense CGPA")
-    defense_cgpa = None
-    if add_defense:
-        defense_cgpa = st.number_input("Enter Defense CGPA", min_value=0.0, max_value=4.0, step=0.01, help="Optional CGPA for defense course.")
+# Input Section
+st.markdown("### Enter Student Information")
+student_id = st.text_input("Student ID:", help="Provide a valid Student ID to fetch results.")
 
-# Main content
+add_defense = st.checkbox("Add Defense CGPA?")
+defense_cgpa = None
+if add_defense:
+    defense_cgpa = st.number_input(
+        "Defense CGPA (Optional):",
+        min_value=0.0, max_value=4.0, step=0.01,
+        help="Optional CGPA for defense course."
+    )
+
+# Process and Display Results
 if student_id:
     st.info(f"Fetching data for Student ID: **{student_id}**")
 
     # Fetch and display student info
     student_info = get_student_info(student_id)
     if student_info:
-        st.subheader("🎓 Student Information")
+        st.markdown("<h3>🎓 Student Information</h3>", unsafe_allow_html=True)
         st.markdown(f"""
         - **Name:** {student_info.get('studentName')}
         - **ID:** {student_info.get('studentId')}
@@ -72,7 +77,7 @@ if student_id:
         total_credits = 0
         weighted_cgpa_sum = 0
 
-        st.subheader("📜 Academic Results")
+        st.markdown("<h3>📜 Academic Results</h3>", unsafe_allow_html=True)
         for semester in semesters:
             semester_id = semester['semesterId']
             semester_name = semester['semesterName']
@@ -80,7 +85,7 @@ if student_id:
 
             results = get_result_for_semester(student_id, semester_id)
             if results:
-                with st.expander(f"{semester_name} {semester_year} (Click to Expand)"):
+                with st.expander(f"{semester_name} {semester_year}"):
                     for result in results:
                         course_title = result['courseTitle']
                         course_code = result['customCourseId']
@@ -88,11 +93,11 @@ if student_id:
                         credits = float(result['totalCredit'])
                         cgpa = float(result['pointEquivalent'])
 
-                        col1, col2, col3, col4 = st.columns(4)
-                        col1.write(f"**Course:** {course_title}")
-                        col2.write(f"**Code:** {course_code}")
-                        col3.write(f"**Grade:** {grade_letter}")
-                        col4.write(f"**Credits:** {credits} / CGPA: {cgpa}")
+                        # Use columns for larger screens, fallback to stacked for mobile
+                        col1, col2, col3 = st.columns([4, 2, 2])
+                        col1.markdown(f"**{course_title} ({course_code})**")
+                        col2.markdown(f"**Grade:** {grade_letter}")
+                        col3.markdown(f"**CGPA:** {cgpa}")
 
                         weighted_cgpa_sum += cgpa * credits
                         total_credits += credits
@@ -111,7 +116,17 @@ if student_id:
             st.warning("No credits earned, CGPA cannot be calculated.")
 
 else:
-    st.warning("Please enter a Student ID in the sidebar.")
+    st.warning("Please enter a Student ID to begin.")
+
+
+# Footer
+st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown("""
+<p style='text-align: center;'>
+    Created by Rifat | © 2024<br>
+    Contact: <a href="mailto:rifatibnatozammal@gmail.com">rifatibnatozammal@gmail.com</a>
+</p>
+""", unsafe_allow_html=True)
 
 
 
