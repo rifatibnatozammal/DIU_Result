@@ -115,4 +115,4 @@ else:
 
 # Footer
 st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Powered by Streamlit | © 2024</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Created By Rifat | © 2024</p>", unsafe_allow_html=True)
