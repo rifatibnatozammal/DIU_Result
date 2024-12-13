@@ -34,23 +34,37 @@ def get_result_for_semester(student_id, semester_id):
         st.error(f"Error fetching result for semester {semester_id}: {response.status_code}")
         return None
 
-# Streamlit app layout
-st.title("Student Result Viewer")
-st.write("Enter the Student ID below to fetch their information and results.")
+# App layout
+st.set_page_config(page_title="Student Result Viewer", layout="wide", page_icon="📘")
 
-# Input for Student ID
-student_id = st.text_input("Student ID:")
+# Header
+st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Student Result Viewer</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>Easily View Student Information and Academic Results</h3>", unsafe_allow_html=True)
 
+# Sidebar
+with st.sidebar:
+    st.header("Input Details")
+    student_id = st.text_input("Enter Student ID", help="Provide a valid student ID to fetch results.")
+    add_defense = st.checkbox("Add Defense CGPA")
+    defense_cgpa = None
+    if add_defense:
+        defense_cgpa = st.number_input("Enter Defense CGPA", min_value=0.0, max_value=4.0, step=0.01, help="Optional CGPA for defense course.")
+
+# Main content
 if student_id:
+    st.info(f"Fetching data for Student ID: **{student_id}**")
+
     # Fetch and display student info
     student_info = get_student_info(student_id)
     if student_info:
-        st.subheader("Student Information")
-        st.write(f"**Name:** {student_info.get('studentName')}")
-        st.write(f"**ID:** {student_info.get('studentId')}")
-        st.write(f"**Program:** {student_info.get('programName')}")
-        st.write(f"**Department:** {student_info.get('departmentName')}")
-        st.write(f"**Campus:** {student_info.get('campusName')}")
+        st.subheader("🎓 Student Information")
+        st.markdown(f"""
+        - **Name:** {student_info.get('studentName')}
+        - **ID:** {student_info.get('studentId')}
+        - **Program:** {student_info.get('programName')}
+        - **Department:** {student_info.get('departmentName')}
+        - **Campus:** {student_info.get('campusName')}
+        """)
 
     # Fetch and display semester results
     semesters = get_semester_list()
@@ -58,6 +72,7 @@ if student_id:
         total_credits = 0
         weighted_cgpa_sum = 0
 
+        st.subheader("📜 Academic Results")
         for semester in semesters:
             semester_id = semester['semesterId']
             semester_name = semester['semesterName']
@@ -65,23 +80,39 @@ if student_id:
 
             results = get_result_for_semester(student_id, semester_id)
             if results:
-                st.subheader(f"{semester_name} {semester_year}")
-                for result in results:
-                    st.write(f"- **Course:** {result['courseTitle']} ({result['customCourseId']})")
-                    st.write(f"  **Grade:** {result['gradeLetter']}, **Credits:** {result['totalCredit']}, **CGPA:** {result['pointEquivalent']}")
-                    weighted_cgpa_sum += float(result['pointEquivalent']) * float(result['totalCredit'])
-                    total_credits += float(result['totalCredit'])
+                with st.expander(f"{semester_name} {semester_year} (Click to Expand)"):
+                    for result in results:
+                        course_title = result['courseTitle']
+                        course_code = result['customCourseId']
+                        grade_letter = result['gradeLetter']
+                        credits = float(result['totalCredit'])
+                        cgpa = float(result['pointEquivalent'])
 
-        # Option to add defense result
-        defense_cgpa = st.number_input("Enter CGPA of defense (optional)", min_value=0.0, max_value=4.0, step=0.01)
-        if defense_cgpa > 0:
+                        col1, col2, col3, col4 = st.columns(4)
+                        col1.write(f"**Course:** {course_title}")
+                        col2.write(f"**Code:** {course_code}")
+                        col3.write(f"**Grade:** {grade_letter}")
+                        col4.write(f"**Credits:** {credits} / CGPA: {cgpa}")
+
+                        weighted_cgpa_sum += cgpa * credits
+                        total_credits += credits
+
+        # Calculate total CGPA including defense
+        if defense_cgpa:
             defense_credits = 6.0
             weighted_cgpa_sum += defense_cgpa * defense_credits
             total_credits += defense_credits
 
-        # Calculate and display total CGPA
+        # Display overall CGPA
         if total_credits > 0:
             total_cgpa = weighted_cgpa_sum / total_credits
-            st.success(f"**Total CGPA:** {total_cgpa:.2f}")
+            st.success(f"🎉 **Total CGPA Across All Semesters:** {total_cgpa:.2f}")
         else:
             st.warning("No credits earned, CGPA cannot be calculated.")
+
+else:
+    st.warning("Please enter a Student ID in the sidebar.")
+
+# Footer
+st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Powered by Streamlit | © 2024</p>", unsafe_allow_html=True)
