@@ -36,46 +36,47 @@ def get_result_for_semester(student_id, semester_id):
         st.error(f"Error fetching result for semester {semester_id}: {response.status_code}")
         return None
 
-# Function to generate a PDF
-def generate_pdf(student_info, semesters, results_summary):
+# Function to create a PDF
+def create_pdf(student_info, results, total_cgpa):
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     pdf.set_font("Arial", size=12)
 
-    # Add student info
-    pdf.cell(200, 10, txt="Student Results", ln=True, align="C")
-    pdf.cell(200, 10, txt="Student Information", ln=True, align="L")
-    pdf.cell(200, 10, txt=f"Name: {student_info.get('studentName')}", ln=True)
-    pdf.cell(200, 10, txt=f"ID: {student_info.get('studentId')}", ln=True)
-    pdf.cell(200, 10, txt=f"Program: {student_info.get('programName')}", ln=True)
-    pdf.cell(200, 10, txt=f"Department: {student_info.get('departmentName')}", ln=True)
-    pdf.cell(200, 10, txt=f"Campus: {student_info.get('campusName')}", ln=True)
+    # Student Info
+    pdf.set_font("Arial", "B", size=14)
+    pdf.cell(200, 10, txt="Student Result Report", ln=True, align='C')
     pdf.ln(10)
 
-    # Add semester results
-    for semester in semesters:
-        semester_name = semester['semesterName']
-        semester_year = semester['semesterYear']
-        pdf.cell(200, 10, txt=f"{semester_name} {semester_year}", ln=True, align="L")
-        for result in results_summary[semester['semesterId']]:
-            pdf.cell(200, 10, txt=f"Course: {result['courseTitle']} - Grade: {result['gradeLetter']} - CGPA: {result['pointEquivalent']}", ln=True)
-        pdf.ln(5)
+    pdf.set_font("Arial", size=12)
+    if student_info:
+        pdf.cell(200, 10, txt=f"Name: {student_info.get('studentName')}", ln=True)
+        pdf.cell(200, 10, txt=f"ID: {student_info.get('studentId')}", ln=True)
+        pdf.cell(200, 10, txt=f"Program: {student_info.get('programName')}", ln=True)
+        pdf.cell(200, 10, txt=f"Department: {student_info.get('departmentName')}", ln=True)
+        pdf.cell(200, 10, txt=f"Campus: {student_info.get('campusName')}", ln=True)
 
-    # Add overall CGPA
-    pdf.cell(200, 10, txt=f"Total CGPA: {results_summary['total_cgpa']:.2f}", ln=True, align="L")
-    
-    # Save to BytesIO
-    pdf_buffer = BytesIO()
-    pdf.output(pdf_buffer)
-    pdf_buffer.seek(0)
-    return pdf_buffer
+    pdf.ln(10)
+
+    # Semester Results
+    pdf.set_font("Arial", "B", size=12)
+    pdf.cell(200, 10, txt="Academic Results:", ln=True)
+    pdf.set_font("Arial", size=12)
+
+    for semester_name, semester_results in results.items():
+        pdf.cell(200, 10, txt=f"{semester_name}:", ln=True)
+        for result in semester_results:
+            pdf.cell(200, 10, txt=f"  - {result['courseTitle']} ({result['customCourseId']}): {result['gradeLetter']} (Credits: {result['totalCredit']}, CGPA: {result['pointEquivalent']})", ln=True)
+
+    pdf.ln(10)
+    pdf.cell(200, 10, txt=f"Total CGPA: {total_cgpa:.2f}", ln=True)
+    return pdf
 
 # App layout
 st.set_page_config(page_title="Student Result Viewer", layout="wide", page_icon="📘")
 
 # Header
 st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Student Result Viewer</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align: center;'>Easily View Student Information and Academic Results</h3>", unsafe_allow_html=True)
 
 # Input Section
 st.markdown("### Input Student Information")
@@ -111,18 +112,17 @@ if student_id:
     if semesters:
         total_credits = 0
         weighted_cgpa_sum = 0
-        results_summary = {}
+        semester_results = {}
 
         st.subheader("📜 Academic Results")
         for semester in semesters:
             semester_id = semester['semesterId']
-            semester_name = semester['semesterName']
-            semester_year = semester['semesterYear']
-
+            semester_name = f"{semester['semesterName']} {semester['semesterYear']}"
             results = get_result_for_semester(student_id, semester_id)
+
             if results:
-                results_summary[semester_id] = results
-                with st.expander(f"{semester_name} {semester_year} (Click to Expand)"):
+                semester_results[semester_name] = results
+                with st.expander(f"{semester_name} (Click to Expand)"):
                     for result in results:
                         course_title = result['courseTitle']
                         course_code = result['customCourseId']
@@ -130,11 +130,10 @@ if student_id:
                         credits = float(result['totalCredit'])
                         cgpa = float(result['pointEquivalent'])
 
-                        col1, col2, col3, col4 = st.columns(4)
-                        col1.write(f"**Course:** {course_title}")
-                        col2.write(f"**Code:** {course_code}")
-                        col3.write(f"**Grade:** {grade_letter}")
-                        col4.write(f"**Credits:** {credits} / CGPA: {cgpa}")
+                        st.write(f"**{course_title} ({course_code})**")
+                        st.write(f"- Grade: {grade_letter}")
+                        st.write(f"- Credits: {credits}")
+                        st.write(f"- CGPA: {cgpa}")
 
                         weighted_cgpa_sum += cgpa * credits
                         total_credits += credits
@@ -145,31 +144,28 @@ if student_id:
             weighted_cgpa_sum += defense_cgpa * defense_credits
             total_credits += defense_credits
 
-        # Display overall CGPA
         if total_credits > 0:
             total_cgpa = weighted_cgpa_sum / total_credits
             st.success(f"🎉 **Total CGPA Across All Semesters:** {total_cgpa:.2f}")
-            results_summary['total_cgpa'] = total_cgpa
-
-            # Generate PDF and provide download option
-            pdf_buffer = generate_pdf(student_info, semesters, results_summary)
-            st.download_button(
-                label="📥 Download Results as PDF",
-                data=pdf_buffer,
-                file_name=f"{student_id}_results.pdf",
-                mime="application/pdf"
-            )
         else:
             st.warning("No credits earned, CGPA cannot be calculated.")
 
-        # Add a print button
-        st.markdown(
-            "<button onclick='window.print()'>🖨️ Print Results</button>",
-            unsafe_allow_html=True
-        )
+        # Add buttons for Print and PDF download
+        st.markdown("### Options")
+        if st.button("Print Results"):
+            st.write("To print, use your browser's print functionality (Ctrl+P or Command+P).")
 
-else:
-    st.warning("Please enter a Student ID to begin.")
+        pdf = create_pdf(student_info, semester_results, total_cgpa)
+        pdf_buffer = BytesIO()
+        pdf.output(pdf_buffer)
+        pdf_buffer.seek(0)
+
+        st.download_button(
+            label="Download Results as PDF",
+            data=pdf_buffer,
+            file_name=f"student_{student_id}_results.pdf",
+            mime="application/pdf",
+        )
 
 
 
