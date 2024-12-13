@@ -86,6 +86,8 @@ st.set_page_config(page_title="Student Result Viewer", layout="centered", page_i
 
 # Header
 st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Student Result Viewer</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>Easily View Student Information and Academic Results</h3>", unsafe_allow_html=True)
+
 
 # Input Section
 st.markdown("### Input Student Information")
@@ -101,7 +103,7 @@ if add_defense:
 
 # Process and Display Results
 if student_id:
-    st.info(f"Fetching data for Student ID: **{student_id}**")
+    st.info(f"Getting Results for Student ID: **{student_id}**")
 
     # Fetch and display student info
     student_info = get_student_info(student_id)
