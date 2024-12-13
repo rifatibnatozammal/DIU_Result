@@ -115,6 +115,9 @@ else:
 
 # Footer
 st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown(\"<p style='text-align: center;'>[rifatibnatozammal@gmail.com](mailto:rifatibnatozammal@gmail.com) | Contact </p>\", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>rifatibnatozammal@gmail.com | Contact </p>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Created by Rifat | © 2024</p>", unsafe_allow_html=True)
+st.markdown("""
+<p style='text-align: center;'>
+    Created by Rifat | © 2024<br>
+    Contact: <a href="mailto:rifatibnatozammal@gmail.com">rifatibnatozammal@gmail.com</a>
+</p>
+""", unsafe_allow_html=True)
