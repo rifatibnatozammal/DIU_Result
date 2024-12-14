@@ -95,7 +95,7 @@ st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Student Result View
 st.markdown("<h3 style='text-align: center;'>Easily View Student Information and Academic Results</h3>", unsafe_allow_html=True)
 
 
-# Input Section with "Get Result" button
+# Input Section with Right-Aligned "Get Result" Button
 with st.form("student_form"):
     st.markdown("### Input Student Information")
     student_id = st.text_input("Enter Student ID:", help="Provide a valid Student ID to fetch results.")
@@ -107,9 +107,11 @@ with st.form("student_form"):
             min_value=0.0, max_value=4.0, step=0.01,
             help="Optional CGPA for defense course."
         )
-    # "Get Result" button
-    submitted = st.form_submit_button("Get Result")
 
+    # Use columns to align the "Get Result" button to the right
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        submitted = st.form_submit_button("Get Result")
 
 # Process and Display Results
 if student_id:
