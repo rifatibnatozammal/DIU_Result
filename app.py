@@ -28,15 +28,25 @@ def get_semester_list():
         st.error(f"Error fetching semester list: {response.status_code}")
         return None
 
+
 def get_result_for_semester(student_id, semester_id):
     url = f"{BASE_URL}/result"
     params = {'studentId': student_id, 'semesterId': semester_id, 'grecaptcha': ''}
     response = requests.get(url, params=params)
+
+    # Debugging: Print the response content
+    st.write("API Response:", response.text)  # Use this to see the response in the app
+    
     if response.status_code == 200:
-        return response.json()
+        try:
+            return response.json()
+        except ValueError:
+            st.error("Error parsing JSON. Check API response.")
+            return None
     else:
         st.error(f"Error fetching result for semester {semester_id}: {response.status_code}")
         return None
+
 
 # Function to create a PDF
 def create_pdf(student_info, semesters, total_cgpa):
