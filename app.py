@@ -110,19 +110,7 @@ with st.form("student_form"):
     # "Get Result" button
     submitted = st.form_submit_button("Get Result")
 
-'''
-# Input Section
-st.markdown("### Input Student Information")
-student_id = st.text_input("Enter Student ID:", help="Provide a valid Student ID to fetch results.")
-add_defense = st.checkbox("Add Defense CGPA?")
-defense_cgpa = None
-if add_defense:
-    defense_cgpa = st.number_input(
-        "Enter Defense CGPA (Optional):",
-        min_value=0.0, max_value=4.0, step=0.01,
-        help="Optional CGPA for defense course."
-    )
-'''
+
 # Process and Display Results
 if student_id:
     st.info(f"Getting Results for Student ID: **{student_id}**")
