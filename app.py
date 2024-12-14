@@ -40,10 +40,10 @@ def get_result_for_semester(student_id, semester_id):
         try:
             return response.json()
         except ValueError:
-            st.error("Error parsing JSON. Check API response.")
+            #st.error("Error parsing JSON. Check API response.")
             return None
     else:
-        st.error(f"Error fetching result for semester {semester_id}: {response.status_code}")
+        #st.error(f"Error fetching result for semester {semester_id}: {response.status_code}")
         return None
 
 
