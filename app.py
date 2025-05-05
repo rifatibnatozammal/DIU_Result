@@ -113,7 +113,7 @@ def create_pdf(student_info, semesters, total_cgpa):
             pdf.drawString(350, y, result['gradeLetter'])
             pdf.drawString(420, y, f"{result['totalCredit']}")
             pdf.drawString(480, y, f"{result['pointEquivalent']}")
-            y -= 15
+            y -= 10
             if y < 80:
                 draw_footer()
                 pdf.showPage()
