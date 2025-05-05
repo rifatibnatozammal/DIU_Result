@@ -52,35 +52,73 @@ def fetch_all_semester_results(student_id, semesters):
 def create_pdf(student_info, semesters, total_cgpa):
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=letter)
-    pdf.setTitle("Student Results")
+    width, height = letter
+    pdf.setTitle("Student Academic Transcript")
+
+    # Title
     pdf.setFont("Helvetica-Bold", 16)
-    pdf.drawString(30, 750, "Student Result Report")
+    pdf.drawCentredString(width / 2, height - 50, "Daffodil International University")
     pdf.setFont("Helvetica", 12)
+    pdf.drawCentredString(width / 2, height - 70, "Academic Transcript")
+    pdf.line(100, height - 75, width - 100, height - 75)
 
+    # Student Information
+    y = height - 110
+    pdf.setFont("Helvetica", 11)
     if student_info:
-        pdf.drawString(30, 730, f"Name: {student_info.get('studentName')}")
-        pdf.drawString(30, 710, f"Student ID: {student_info.get('studentId')}")
-        pdf.drawString(30, 690, f"Program: {student_info.get('programName')}")
-        pdf.drawString(30, 670, f"Department: {student_info.get('departmentName')}")
-        pdf.drawString(30, 650, f"Campus: {student_info.get('campusName')}")
-
-    y = 630
-    pdf.drawString(30, y, "Semester Results:")
-    pdf.setFont("Helvetica", 10)
-
-    for semester_name, results in semesters.items():
+        pdf.drawString(50, y, f"Name: {student_info.get('studentName')}")
         y -= 20
-        pdf.drawString(30, y, f"{semester_name}:")
-        for result in results:
-            y -= 15
-            pdf.drawString(50, y, f"{result['courseTitle']} ({result['customCourseId']}):")
-            pdf.drawString(300, y, f"Grade: {result['gradeLetter']}, CGPA: {result['pointEquivalent']}")
-            if y < 50:
-                pdf.showPage()
-                y = 750
+        pdf.drawString(50, y, f"Student ID: {student_info.get('studentId')}")
+        y -= 20
+        pdf.drawString(50, y, f"Program: {student_info.get('programName')}")
+        y -= 20
+        pdf.drawString(50, y, f"Department: {student_info.get('departmentName')}")
+        y -= 20
+        pdf.drawString(50, y, f"Campus: {student_info.get('campusName')}")
+        y -= 30
 
-    y -= 30
-    pdf.drawString(30, y, f"Total CGPA: {total_cgpa:.2f}")
+    # Semester Results
+    for semester_name, results in semesters.items():
+        pdf.setFont("Helvetica-Bold", 11)
+        pdf.drawString(50, y, f"{semester_name}")
+        y -= 15
+        pdf.setFont("Helvetica-Bold", 10)
+        pdf.drawString(60, y, "Course Title")
+        pdf.drawString(250, y, "Course Code")
+        pdf.drawString(350, y, "Grade")
+        pdf.drawString(420, y, "Credits")
+        pdf.drawString(480, y, "CGPA")
+        y -= 10
+        pdf.line(50, y, width - 50, y)
+        y -= 15
+
+        pdf.setFont("Helvetica", 10)
+        for result in results:
+            pdf.drawString(60, y, result['courseTitle'][:30])
+            pdf.drawString(250, y, result['customCourseId'])
+            pdf.drawString(350, y, result['gradeLetter'])
+            pdf.drawString(420, y, f"{result['totalCredit']}")
+            pdf.drawString(480, y, f"{result['pointEquivalent']}")
+            y -= 15
+            if y < 80:
+                pdf.showPage()
+                y = height - 80
+
+        y -= 10  # Extra space after semester
+
+    # Total CGPA
+    pdf.setFont("Helvetica-Bold", 11)
+    y -= 10
+    if y < 100:
+        pdf.showPage()
+        y = height - 100
+    pdf.drawString(50, y, f"Total CGPA: {total_cgpa:.2f}")
+
+    # Footer
+    pdf.setFont("Helvetica-Oblique", 9)
+    pdf.drawCentredString(width / 2, 40, "Generated via Student Result Viewer App")
+    pdf.drawRightString(width - 50, 40, f"Page 1")
+
     pdf.save()
     buffer.seek(0)
     return buffer
