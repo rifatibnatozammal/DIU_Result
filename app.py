@@ -79,6 +79,8 @@ def create_pdf(student_info, semesters, total_cgpa):
 
     # Semester Results
     for semester_name, results in semesters.items():
+        pdf.line(50, y, width - 50, y)
+        y -= 20
         pdf.setFont("Helvetica-Bold", 14)
         pdf.drawCentredString(300, y, f"{semester_name}")
         y -= 20
@@ -90,7 +92,7 @@ def create_pdf(student_info, semesters, total_cgpa):
         pdf.drawString(480, y, "CGPA")
         y -= 10
         pdf.line(50, y, width - 50, y)
-        y -= 20
+        y -= 10
 
         pdf.setFont("Helvetica", 10)
         for result in results:
