@@ -4,59 +4,59 @@ from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import pandas as pd
+import concurrent.futures
 
-# Base URL for API
-# BASE_URL = 'http://software.diu.edu.bd:8006'
 BASE_URL = 'http://peoplepulse.diu.edu.bd:8189'
 
-# Functions to fetch data from the API
+# CACHED Functions
+@st.cache_data(ttl=3600)
 def get_student_info(student_id):
     url = f"{BASE_URL}/result/studentInfo"
     params = {'studentId': student_id}
     response = requests.get(url, params=params)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"Error fetching student info: {response.status_code}")
-        return None
+    return response.json() if response.status_code == 200 else None
 
+@st.cache_data(ttl=3600)
 def get_semester_list():
     url = f"{BASE_URL}/result/semesterList"
     response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"Error fetching semester list: {response.status_code}")
-        return None
+    return response.json() if response.status_code == 200 else None
 
+@st.cache_data(ttl=3600)
 def get_result_for_semester(student_id, semester_id):
     url = f"{BASE_URL}/result"
     params = {'studentId': student_id, 'semesterId': semester_id, 'grecaptcha': ''}
     response = requests.get(url, params=params)
-    
-    if response.status_code == 200:
-        try:
-            return response.json()
-        except ValueError:
-            #st.error("Error parsing JSON. Check API response.")
-            return None
-    else:
-        #st.error(f"Error fetching result for semester {semester_id}: {response.status_code}")
+    try:
+        return response.json() if response.status_code == 200 else None
+    except ValueError:
         return None
 
+def fetch_all_semester_results(student_id, semesters):
+    results_by_semester = {}
 
-# Function to create a PDF
+    def fetch(semester):
+        sid = semester['semesterId']
+        name = f"{semester['semesterName']} {semester['semesterYear']}"
+        result = get_result_for_semester(student_id, sid)
+        return name, result
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(fetch, s) for s in semesters]
+        for f in concurrent.futures.as_completed(futures):
+            name, result = f.result()
+            if result:
+                results_by_semester[name] = result
+    return results_by_semester
+
 def create_pdf(student_info, semesters, total_cgpa):
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=letter)
     pdf.setTitle("Student Results")
-
-    # Add header
     pdf.setFont("Helvetica-Bold", 16)
     pdf.drawString(30, 750, "Student Result Report")
     pdf.setFont("Helvetica", 12)
 
-    # Add student information
     if student_info:
         pdf.drawString(30, 730, f"Name: {student_info.get('studentName')}")
         pdf.drawString(30, 710, f"Student ID: {student_info.get('studentId')}")
@@ -64,7 +64,6 @@ def create_pdf(student_info, semesters, total_cgpa):
         pdf.drawString(30, 670, f"Department: {student_info.get('departmentName')}")
         pdf.drawString(30, 650, f"Campus: {student_info.get('campusName')}")
 
-    # Add results
     y = 630
     pdf.drawString(30, y, "Semester Results:")
     pdf.setFont("Helvetica", 10)
@@ -80,120 +79,83 @@ def create_pdf(student_info, semesters, total_cgpa):
                 pdf.showPage()
                 y = 750
 
-    # Add CGPA
     y -= 30
     pdf.drawString(30, y, f"Total CGPA: {total_cgpa:.2f}")
-
     pdf.save()
     buffer.seek(0)
     return buffer
 
-# App layout
+# Streamlit App UI
 st.set_page_config(page_title="Student Result Viewer", layout="centered", page_icon="📘")
-
-# Header
 st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Student Result Viewer</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center;'>Easily View Student Information and Academic Results</h3>", unsafe_allow_html=True)
 
-
-# Input Section with Right-Aligned "Get Result" Button
 with st.form("student_form"):
     st.markdown("### Input Student Information")
-    student_id = st.text_input("Enter Student ID:", help="Provide a valid Student ID to fetch results.")
+    student_id = st.text_input("Enter Student ID:")
     add_defense = st.checkbox("Add Defense CGPA?")
-    defense_cgpa = None
-    if add_defense:
-        defense_cgpa = st.number_input(
-            "Enter Defense CGPA (Optional):",
-            min_value=0.0, max_value=4.0, step=0.01,
-            help="Optional CGPA for defense course."
-        )
-
-    # Use columns to align the "Get Result" button to the right
+    defense_cgpa = st.number_input("Enter Defense CGPA (Optional):", min_value=0.0, max_value=4.0, step=0.01) if add_defense else None
     col1, col2 = st.columns([3, 1])
     with col2:
         submitted = st.form_submit_button("Get Result")
 
-# Process and Display Results
-if student_id:
-    st.info(f"Getting Results for Student ID: **{student_id}**")
+if submitted and student_id:
+    st.info(f"Fetching results for: **{student_id}**")
 
-    # Fetch and display student info
     student_info = get_student_info(student_id)
-    if student_info:
-        st.markdown("<h3>🎓 Student Information</h3>", unsafe_allow_html=True)
-        st.markdown(f"""
-        - **Name:** {student_info.get('studentName')}
-        - **ID:** {student_info.get('studentId')}
-        - **Program:** {student_info.get('programName')}
-        - **Department:** {student_info.get('departmentName')}
-        - **Campus:** {student_info.get('campusName')}
-        """)
+    if not student_info:
+        st.error("Failed to fetch student information.")
+    else:
+        semesters = get_semester_list()
+        if not semesters:
+            st.error("Failed to fetch semester list.")
+        else:
+            semester_results = fetch_all_semester_results(student_id, semesters)
 
-    # Fetch and display semester results
-    semesters = get_semester_list()
-    if semesters:
-        total_credits = 0
-        weighted_cgpa_sum = 0
-        semester_results = {}
+            st.markdown("<h3>🎓 Student Information</h3>", unsafe_allow_html=True)
+            st.markdown(f"""
+            - **Name:** {student_info.get('studentName')}
+            - **ID:** {student_info.get('studentId')}
+            - **Program:** {student_info.get('programName')}
+            - **Department:** {student_info.get('departmentName')}
+            - **Campus:** {student_info.get('campusName')}
+            """)
 
-        st.markdown("<h3>📜 Academic Results</h3>", unsafe_allow_html=True)
-        for semester in semesters:
-            semester_id = semester['semesterId']
-            semester_name = f"{semester['semesterName']} {semester['semesterYear']}"
-            results = get_result_for_semester(student_id, semester_id)
+            total_credits = 0
+            weighted_sum = 0
 
-            if results:
-                semester_results[semester_name] = results
-
-                # Prepare table data
-                table_data = []
+            st.markdown("<h3>📜 Academic Results</h3>", unsafe_allow_html=True)
+            for semester_name, results in semester_results.items():
+                table = []
                 for result in results:
-                    table_data.append({
+                    table.append({
                         "Course Title": result['courseTitle'],
                         "Course Code": result['customCourseId'],
                         "Grade": result['gradeLetter'],
                         "Credits": float(result['totalCredit']),
-                        "CGPA": float(result['pointEquivalent'])
+                        "CGPA": float(result['pointEquivalent']),
                     })
+                    weighted_sum += float(result['pointEquivalent']) * float(result['totalCredit'])
+                    total_credits += float(result['totalCredit'])
 
-                df = pd.DataFrame(table_data)
-
-                # Display in expander as a table
+                df = pd.DataFrame(table)
                 with st.expander(f"{semester_name} (Click to Expand)"):
                     st.dataframe(df)
 
-                    # Calculate CGPA and Credits
-                    for result in results:
-                        weighted_cgpa_sum += float(result['pointEquivalent']) * float(result['totalCredit'])
-                        total_credits += float(result['totalCredit'])
+            if defense_cgpa:
+                weighted_sum += defense_cgpa * 6.0
+                total_credits += 6.0
 
-        # Add defense CGPA
-        if defense_cgpa:
-            defense_credits = 6.0
-            weighted_cgpa_sum += defense_cgpa * defense_credits
-            total_credits += defense_credits
+            if total_credits > 0:
+                total_cgpa = weighted_sum / total_credits
+                st.success(f"🎉 Total CGPA: {total_cgpa:.2f}")
+            else:
+                st.warning("CGPA could not be calculated due to missing credits.")
 
-        # Calculate and display total CGPA
-        if total_credits > 0:
-            total_cgpa = weighted_cgpa_sum / total_credits
-            st.success(f"🎉 **Total CGPA Across All Semesters:** {total_cgpa:.2f}")
-        else:
-            st.warning("No credits earned, CGPA cannot be calculated.")
+            st.markdown("### Options")
+            pdf = create_pdf(student_info, semester_results, total_cgpa)
+            st.download_button("Download Results as PDF", data=pdf, file_name=f"{student_id}_results.pdf", mime="application/pdf")
 
-        # Add buttons for Print and PDF download
-        st.markdown("### Options")
-        st.button("Print Results", help="Use your browser's print option to print this page.")
-
-        pdf_buffer = create_pdf(student_info, semester_results, total_cgpa)
-        st.download_button(
-            label="Download Results as PDF",
-            data=pdf_buffer,
-            file_name=f"student_{student_id}_results.pdf",
-            mime="application/pdf",
-        )
-
-# Footer
 st.markdown("<hr>", unsafe_allow_html=True)
 st.markdown("""
 <p style='text-align: center;'>
