@@ -79,8 +79,7 @@ def create_pdf(student_info, semesters, total_cgpa):
 
     # Semester Results
     for semester_name, results in semesters.items():
-        pdf.line(50, y, width - 50, y)
-        y -= 20
+    
         pdf.setFont("Helvetica-Bold", 14)
         pdf.drawCentredString(300, y, f"{semester_name}")
         y -= 20
@@ -105,6 +104,9 @@ def create_pdf(student_info, semesters, total_cgpa):
             if y < 80:
                 pdf.showPage()
                 y = height - 80
+
+        pdf.line(50, y, width - 50, y)
+        y -= 20
 
         y -= 15  # Extra space after semester
 
