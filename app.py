@@ -107,7 +107,7 @@ def create_pdf(student_info, semesters, total_cgpa):
 
         pdf.line(50, y, width - 50, y)
 
-        y -= 15  # Extra space after semester
+        y -= 20  # Extra space after semester
 
     # Total CGPA
     pdf.setFont("Helvetica-Bold", 14)
