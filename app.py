@@ -37,18 +37,23 @@ def fetch_all_semester_results(student_id, semesters):
     results_by_semester = {}
 
     def fetch(semester):
-        sid = semester['semesterId']
-        name = f"{semester['semesterName']} {semester['semesterYear']}"
-        result = get_result_for_semester(student_id, sid)
-        return name, result
+        try:
+            sid = semester['semesterId']
+            name = f"{semester['semesterName']} {semester['semesterYear']}"
+            result = get_result_for_semester(student_id, sid)
+            return name, result if result else []
+        except Exception as e:
+            print(f"Error fetching {semester['semesterName']} {semester['semesterYear']}: {e}")
+            return semester['semesterName'], []
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(fetch, s) for s in semesters]
         for f in concurrent.futures.as_completed(futures):
             name, result = f.result()
-            if result:
+            if result:  # Only add if data exists
                 results_by_semester[name] = result
-    return results_by_semester
+
+    return dict(sorted(results_by_semester.items()))  # Optional: sort by name
 
 def create_pdf(student_info, semesters, total_cgpa):
     buffer = BytesIO()
