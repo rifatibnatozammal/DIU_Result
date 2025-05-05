@@ -54,15 +54,22 @@ def create_pdf(student_info, semesters, total_cgpa):
     pdf = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     pdf.setTitle("Student Academic Transcript")
+    page_number = 1  # Initial page
 
-    # Title
+    def draw_footer():
+        pdf.setFont("Helvetica-Oblique", 9)
+        pdf.drawCentredString(width / 2, 60, "Generated via Student Result Viewer App")
+        pdf.drawCentredString(width / 2, 45, "This App Made by ABDULLAH AL RIFAT")
+        pdf.drawRightString(width - 50, 30, f"Page {page_number}")
+
+    # Header
     pdf.setFont("Helvetica-Bold", 16)
     pdf.drawCentredString(width / 2, height - 50, "Daffodil International University")
     pdf.setFont("Helvetica", 12)
     pdf.drawCentredString(width / 2, height - 70, "Academic Transcript")
     pdf.line(100, height - 75, width - 100, height - 75)
 
-    # Student Information
+    # Student Info
     y = height - 110
     pdf.setFont("Helvetica", 11)
     if student_info:
@@ -79,7 +86,6 @@ def create_pdf(student_info, semesters, total_cgpa):
 
     # Semester Results
     for semester_name, results in semesters.items():
-    
         pdf.setFont("Helvetica-Bold", 14)
         pdf.drawCentredString(300, y, f"{semester_name}")
         y -= 20
@@ -102,30 +108,29 @@ def create_pdf(student_info, semesters, total_cgpa):
             pdf.drawString(480, y, f"{result['pointEquivalent']}")
             y -= 15
             if y < 80:
+                draw_footer()
                 pdf.showPage()
+                page_number += 1
                 y = height - 80
 
-        pdf.line(50, y, width - 50, y)
-
-        y -= 20  # Extra space after semester
+    pdf.line(50, y, width - 50, y)
+    y -= 30
 
     # Total CGPA
     pdf.setFont("Helvetica-Bold", 14)
-    y -= 10
     if y < 100:
+        draw_footer()
         pdf.showPage()
+        page_number += 1
         y = height - 100
     pdf.drawString(50, y, f"Total CGPA: {total_cgpa:.2f}")
 
-    # Footer
-    pdf.setFont("Helvetica-Oblique", 9)
-    pdf.drawCentredString(width / 2, 60, "Generated via Student Result Viewer App")
-    pdf.drawCentredString(width / 2, 40, "This App Made by ABDULLAH AL RIFAT")
-    #pdf.drawRightString(width - 50, 80, f"Page 1")
-
+    # Final Footer
+    draw_footer()
     pdf.save()
     buffer.seek(0)
     return buffer
+
 
 # Streamlit App UI
 st.set_page_config(page_title="Student Result Viewer", layout="centered", page_icon="📘")
