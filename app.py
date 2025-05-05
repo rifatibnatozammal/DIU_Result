@@ -64,8 +64,8 @@ def create_pdf(student_info, semesters, total_cgpa):
 
     def draw_footer():
         pdf.setFont("Helvetica-Oblique", 9)
-        pdf.drawCentredString(width / 2, 60, "Generated via Student Result Viewer App")
-        pdf.drawCentredString(width / 2, 45, "This App Made by ABDULLAH AL RIFAT")
+        #pdf.drawCentredString(width / 2, 60, "Generated via Student Result Viewer App")
+        #pdf.drawCentredString(width / 2, 45, "This App Made by ABDULLAH AL RIFAT")
         pdf.drawRightString(width - 50, 30, f"Page {page_number}")
 
     # Header
@@ -130,6 +130,11 @@ def create_pdf(student_info, semesters, total_cgpa):
         page_number += 1
         y = height - 100
     pdf.drawString(50, y, f"Total CGPA: {total_cgpa:.2f}")
+
+    y -= 10
+    pdf.drawCentredString(width / 2, y, "Generated via Student Result Viewer App")
+    y -= 10
+    pdf.drawCentredString(width / 2, y, "This App Made by ABDULLAH AL RIFAT")
 
     # Final Footer
     draw_footer()
