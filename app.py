@@ -112,7 +112,7 @@ def create_pdf(student_info, semesters, total_cgpa):
             pdf.drawString(350, y, result['gradeLetter'])
             pdf.drawString(420, y, f"{result['totalCredit']}")
             pdf.drawString(480, y, f"{result['pointEquivalent']}")
-            y -= 15
+            y -= 25
             if y < 80:
                 draw_footer()
                 pdf.showPage()
@@ -131,7 +131,8 @@ def create_pdf(student_info, semesters, total_cgpa):
         y = height - 100
     pdf.drawString(50, y, f"Total CGPA: {total_cgpa:.2f}")
 
-    y -= 10
+    pdf.setFont("Helvetica-Oblique", 9)
+    y -= 20
     pdf.drawCentredString(width / 2, y, "Generated via Student Result Viewer App")
     y -= 10
     pdf.drawCentredString(width / 2, y, "This App Made by ABDULLAH AL RIFAT")
