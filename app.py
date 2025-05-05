@@ -93,7 +93,7 @@ def create_pdf(student_info, semesters, total_cgpa):
     # Semester Results
     for semester_name, results in semesters.items():
         pdf.setFont("Helvetica-Bold", 14)
-        y-=15
+        #y-=15
         pdf.drawCentredString(300, y, f"{semester_name}")
         y -= 20
         pdf.setFont("Helvetica-Bold", 10)
