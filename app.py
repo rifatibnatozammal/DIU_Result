@@ -6,7 +6,8 @@ from reportlab.pdfgen import canvas
 import pandas as pd
 
 # Base URL for API
-BASE_URL = 'http://software.diu.edu.bd:8006'
+# BASE_URL = 'http://software.diu.edu.bd:8006'
+BASE_URL = 'http://peoplepulse.diu.edu.bd:8189'
 
 # Functions to fetch data from the API
 def get_student_info(student_id):
