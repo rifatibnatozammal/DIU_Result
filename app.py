@@ -93,6 +93,7 @@ def create_pdf(student_info, semesters, total_cgpa):
     # Semester Results
     for semester_name, results in semesters.items():
         pdf.setFont("Helvetica-Bold", 14)
+        y-=15
         pdf.drawCentredString(300, y, f"{semester_name}")
         y -= 20
         pdf.setFont("Helvetica-Bold", 10)
@@ -112,7 +113,7 @@ def create_pdf(student_info, semesters, total_cgpa):
             pdf.drawString(350, y, result['gradeLetter'])
             pdf.drawString(420, y, f"{result['totalCredit']}")
             pdf.drawString(480, y, f"{result['pointEquivalent']}")
-            y -= 25
+            y -= 15
             if y < 80:
                 draw_footer()
                 pdf.showPage()
