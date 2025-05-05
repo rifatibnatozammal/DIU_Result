@@ -80,8 +80,8 @@ def create_pdf(student_info, semesters, total_cgpa):
     # Semester Results
     for semester_name, results in semesters.items():
         pdf.setFont("Helvetica-Bold", 14)
-        pdf.drawCentredString(50, y, f"{semester_name}")
-        y -= 15
+        pdf.drawCentredString(300, y, f"{semester_name}")
+        y -= 20
         pdf.setFont("Helvetica-Bold", 10)
         pdf.drawString(60, y, "Course Title")
         pdf.drawString(250, y, "Course Code")
@@ -90,7 +90,7 @@ def create_pdf(student_info, semesters, total_cgpa):
         pdf.drawString(480, y, "CGPA")
         y -= 10
         pdf.line(50, y, width - 50, y)
-        y -= 15
+        y -= 20
 
         pdf.setFont("Helvetica", 10)
         for result in results:
@@ -116,9 +116,9 @@ def create_pdf(student_info, semesters, total_cgpa):
 
     # Footer
     pdf.setFont("Helvetica-Oblique", 9)
-    pdf.drawCentredString(width / 2, 40, "Generated via Student Result Viewer App")
-    pdf.drawCentredString(width / 2, 80, "This App Made by ABDULLAH AL RIFAT")
-    pdf.drawRightString(width - 50, 80, f"Page 1")
+    pdf.drawCentredString(width / 2, 60, "Generated via Student Result Viewer App")
+    pdf.drawCentredString(width / 2, 40, "This App Made by ABDULLAH AL RIFAT")
+    #pdf.drawRightString(width - 50, 80, f"Page 1")
 
     pdf.save()
     buffer.seek(0)
