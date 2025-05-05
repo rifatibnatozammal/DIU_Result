@@ -117,8 +117,8 @@ def create_pdf(student_info, semesters, total_cgpa):
     # Footer
     pdf.setFont("Helvetica-Oblique", 9)
     pdf.drawCentredString(width / 2, 40, "Generated via Student Result Viewer App")
-    pdf.drawCentredString(width / 2, 40, "This App Made by ABDULLAH AL RIFAT")
-    pdf.drawRightString(width - 50, 40, f"Page 1")
+    pdf.drawCentredString(width / 2, 80, "This App Made by ABDULLAH AL RIFAT")
+    pdf.drawRightString(width - 50, 80, f"Page 1")
 
     pdf.save()
     buffer.seek(0)
