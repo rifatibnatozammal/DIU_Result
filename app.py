@@ -150,12 +150,7 @@ if submitted and student_id:
                 total_cgpa = weighted_sum / total_credits
                 st.success(f"🎉 Total CGPA: {total_cgpa:.2f}")
                 st.toast(f"📢 CGPA calculated: {total_cgpa:.2f}", icon="✅")
-'''
-            if total_credits > 0:
-                total_cgpa = weighted_sum / total_credits
-                st.success(f"🎉 Total CGPA: {total_cgpa:.2f}")
-                st.toast(f"📢 CGPA calculated: {total_cgpa:.2f}", icon="✅")
-'''
+
             else:
                 st.warning("CGPA could not be calculated due to missing credits.")
 
