@@ -5,6 +5,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import pandas as pd
 import concurrent.futures
+import matplotlib.pyplot as plt
+
 
 BASE_URL = 'http://peoplepulse.diu.edu.bd:8189'
 
@@ -197,6 +199,36 @@ if submitted and student_id:
                 total_cgpa = weighted_sum / total_credits
                 st.success(f"🎉 Total CGPA: {total_cgpa:.2f}")
                 st.toast(f"📢 CGPA calculated: {total_cgpa:.2f}", icon="✅")
+
+                # 📊 GPA Trend Chart
+                st.markdown("### 📈 GPA Trend Chart")
+            
+                semester_names = []
+                semester_gpas = []
+            
+                for semester_name, results in semester_results.items():
+                    sem_credits = 0
+                    sem_weighted = 0
+                    for result in results:
+                        sem_credits += float(result['totalCredit'])
+                        sem_weighted += float(result['pointEquivalent']) * float(result['totalCredit'])
+            
+                    if sem_credits > 0:
+                        semester_names.append(semester_name)
+                        semester_gpas.append(sem_weighted / sem_credits)
+            
+                # Plotting
+                fig, ax = plt.subplots()
+                ax.plot(semester_names, semester_gpas, marker='o', linestyle='-')
+                ax.set_title("Semester-wise GPA Trend")
+                ax.set_xlabel("Semester")
+                ax.set_ylabel("GPA")
+                ax.set_ylim(0, 4.0)
+                ax.grid(True)
+                plt.xticks(rotation=45, ha='right')
+            
+                st.pyplot(fig)
+
 
             else:
                 st.warning("CGPA could not be calculated due to missing credits.")
