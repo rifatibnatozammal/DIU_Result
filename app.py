@@ -10,20 +10,20 @@ import concurrent.futures
 BASE_URL = 'http://peoplepulse.diu.edu.bd:8189'
 
 # CACHED Functions
-@st.cache_data(ttl=3600)
+#@st.cache_data(ttl=3600)
 def get_student_info(student_id):
     url = f"{BASE_URL}/result/studentInfo"
     params = {'studentId': student_id}
     response = requests.get(url, params=params)
     return response.json() if response.status_code == 200 else None
 
-@st.cache_data(ttl=3600)
+#@st.cache_data(ttl=3600)
 def get_semester_list():
     url = f"{BASE_URL}/result/semesterList"
     response = requests.get(url)
     return response.json() if response.status_code == 200 else None
 
-@st.cache_data(ttl=3600)
+#@st.cache_data(ttl=3600)
 def get_result_for_semester(student_id, semester_id):
     url = f"{BASE_URL}/result"
     params = {'studentId': student_id, 'semesterId': semester_id, 'grecaptcha': ''}
